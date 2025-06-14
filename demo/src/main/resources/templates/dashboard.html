@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banking Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <script>
+        if (typeof Chart === 'undefined') {
+            document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"><\/script>');
+        }
+    </script>
+    <script src="/js/icons.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/js/pdf-generator.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #3a2d97;
+            --color-secondary: #d8e1e6;
+            --color-tertiary: #f5f5f6;
+            --color-accent: #d3d7dd;
+            --color-muted: #adadc2;
+            --color-dark: #000000;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--color-tertiary) 0%, var(--color-secondary) 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <nav class="glass-effect sticky top-0 z-50 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                        style="background: var(--color-primary);">
+                        <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <h1 class="text-xl font-bold gradient-text">BankDash</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-lg hover:bg-white/20 transition-colors" title="Notifications"
+                        aria-label="View notifications"></button>
+                    <i data-lucide="bell" class="w-5 h-5" style="color: var(--color-primary);"></i>
+                    </button>
+                    <button class="p-2 rounded-lg hover:bg-white/20 transition-colors" title="User profile"
+                        aria-label="View user profile"></button>
+                    <i data-lucide="user" class="w-5 h-5" style="color: var(--color-primary);"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8 animate-slide-up">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Dashboard Overview</h2>
+            <p class="text-gray-600">Welcome back! Here's what's happening with your banking system today.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass-effect rounded-xl p-6 card-hover animate-scale-in" style="animation-delay: 0.1s;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium" style="color: var(--color-muted);">Total Accounts</p>
+                        <p class="text-2xl font-bold text-gray-900" data-stat="total-accounts"
+                            th:text="${stats?.nombreTotalComptes ?: 0}">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style="background: var(--color-primary);">
+                        <i data-lucide="users" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-500 text-sm font-medium">
+                        this is the total number of accounts
+                    </span>
+                </div>
+            </div>
+            <div class="glass-effect rounded-xl p-6 card-hover animate-scale-in" style="animation-delay: 0.2s;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium" style="color: var(--color-muted);">Total Balance</p>
+                        <p class="text-2xl font-bold text-gray-900" data-stat="total-balance"
+                            th:text="'€' + ${stats?.soldeTotal ?: '0.00'}">€0.00</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style="background: var(--color-primary);">
+                        <i data-lucide="euro" class="w-6 h-6 text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-500 text-sm font-medium">
+                        this is the total balance of all accounts
+                    </span>
+                </div>
+            </div>
+
+            <!-- Average Balance -->
+            <div class="glass-effect rounded-xl p-6 card-hover animate-scale-in" style="animation-delay: 0.3s;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium" style="color: var(--color-muted);">Average Balance</p>
+                        <p class="text-2xl font-bold text-gray-900" data-stat="avg-balance"
+                            th:text="'€' + ${stats?.soldeMoyen ?: '0.00'}">€0.00</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style="background: var(--color-primary);">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-blue-500 text-sm font-medium">
+                        this is the average balance of all accounts
+                    </span>
+                </div>
+            </div>
+            <div class="glass-effect rounded-xl p-6 card-hover animate-scale-in" style="animation-delay: 0.4s;">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium" style="color: var(--color-muted);">Total Operations</p>
+                        <p class="text-2xl font-bold text-gray-900" data-stat="total-operations"
+                            th:text="${stats?.nombreOperations ?: 0}">0</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center"
+                        style="background: var(--color-primary);">
+                        <i data-lucide="activity" class="w-6 h-6 text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-purple-500 text-sm font-medium">this is the total number of operations</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="glass-effect rounded-xl p-6 animate-slide-up" style="animation-delay: 0.5s;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Account Types Distribution</h3>
+                <div class="relative h-64">
+                    <canvas id="accountTypesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-xl p-6 animate-slide-up" style="animation-delay: 0.6s;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Operations</h3>
+                <div class="relative h-64">
+                    <canvas id="operationsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="glass-effect rounded-xl p-6 animate-slide-up" style="animation-delay: 0.7s;">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">Quick Actions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <a href="/comptes/nouveau"
+                    class="flex items-center p-4 rounded-lg border-2 border-dashed hover:border-solid transition-all duration-300"
+                    style="border-color: var(--color-primary); color: var(--color-primary);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="#3a2d97" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="lucide lucide-plus-circle">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M8 12h8" />
+                        <path d="M12 8v8" />
+                    </svg>
+                    <span class="font-medium">New Account</span>
+                </a>
+                <a href="/comptes"
+                    class="flex items-center p-4 rounded-lg border-2 border-dashed hover:border-solid transition-all duration-300"
+                    style="border-color: var(--color-primary); color: var(--color-primary);">
+                    <i data-lucide="list" class="w-5 h-5 mr-3"></i>
+                    <span class="font-medium">View Accounts</span>
+                </a>
+                <a href="/comptes/virement"
+                    class="flex items-center p-4 rounded-lg border-2 border-dashed hover:border-solid transition-all duration-300"
+                    style="border-color: var(--color-primary); color: var(--color-primary);">
+                    <i data-lucide="arrow-right-left" class="w-5 h-5 mr-3"></i>
+                    <span class="font-medium">Transfer Money</span>
+                </a>
+                <button id="pdf-download-btn" onclick="generateStatsPDF()"
+                    class="flex items-center p-4 rounded-lg border-2 border-dashed hover:border-solid transition-all duration-300"
+                    style="border-color: var(--color-primary); color: var(--color-primary);">
+                    <i data-lucide="file-text" class="w-5 h-5 mr-3"></i>
+                    <span class="font-medium">Download PDF Report</span>
+                </button>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let accountTypesChart;
+        let operationsChart;
+        async function fetchDashboardStats() {
+            try {
+                console.log('Fetching dashboard statistics...');
+                const response = await fetch('/comptes/api/stats');
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch dashboard statistics: ${response.status}`);
+                }
+                const stats = await response.json();
+                console.log('Dashboard stats received:', stats);
+                updateDashboardStats(stats);
+                updateCharts(stats);
+            } catch (error) {
+                console.error('Error fetching dashboard stats:', error);
+                console.log('Using fallback chart data...');
+                updateChartsWithFallbackData();
+            }
+        }
+
+        function updateDashboardStats(stats) {
+            const totalAccountsElement = document.querySelector('[data-stat="total-accounts"]');
+            if (totalAccountsElement) {
+                totalAccountsElement.textContent = stats.totalAccounts || '0';
+            }
+
+            const totalBalanceElement = document.querySelector('[data-stat="total-balance"]');
+            if (totalBalanceElement) {
+                const formattedBalance = new Intl.NumberFormat('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                }).format(stats.totalBalance || 0);
+                totalBalanceElement.textContent = formattedBalance;
+            }
+
+            const avgBalanceElement = document.querySelector('[data-stat="avg-balance"]');
+            if (avgBalanceElement) {
+                const formattedAvgBalance = new Intl.NumberFormat('fr-FR', {
+                    style: 'currency',
+                    currency: 'EUR'
+                }).format(stats.averageBalance || 0);
+                avgBalanceElement.textContent = formattedAvgBalance;
+            }
+
+            const totalOperationsElement = document.querySelector('[data-stat="total-operations"]');
+            if (totalOperationsElement) {
+                totalOperationsElement.textContent = stats.totalOperations || '0';
+            }
+        }
+
+        function updateCharts(stats) {
+            console.log('Updating charts with stats:', stats);
+
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js is not loaded!');
+                return;
+            }
+
+            const accountTypesElement = document.getElementById('accountTypesChart');
+            if (!accountTypesElement) {
+                console.error('Account types chart canvas not found!');
+                return;
+            }
+
+            const accountTypesCtx = accountTypesElement.getContext('2d');
+
+            if (accountTypesElement.width === 0 || accountTypesElement.height === 0) {
+                accountTypesElement.width = 300;
+                accountTypesElement.height = 300;
+            }
+            const accountsByType = stats.accountsByType || {};
+
+            console.log('Account types data:', accountsByType);
+            const labels = Object.keys(accountsByType);
+            const data = Object.values(accountsByType);
+            const colors = ['#3a2d97', '#d8e1e6', '#adadc2', '#8b5cf6', '#06b6d4'];
+
+            if (accountTypesChart) {
+                accountTypesChart.destroy();
+            }
+
+            try {
+                accountTypesChart = new Chart(accountTypesCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels.length > 0 ? labels : ['Aucun compte'],
+                        datasets: [{
+                            data: data.length > 0 ? data : [1],
+                            backgroundColor: colors.slice(0, Math.max(labels.length, 1)),
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating account types chart:', error);
+            }
+            const operationsElement = document.getElementById('operationsChart');
+            if (!operationsElement) {
+                console.error('Operations chart canvas not found!');
+                return;
+            }
+
+            const operationsCtx = operationsElement.getContext('2d');
+
+            if (operationsElement.width === 0 || operationsElement.height === 0) {
+                operationsElement.width = 400;
+                operationsElement.height = 200;
+            }
+            const totalOps = stats.totalOperations || 0;
+
+            console.log('Total operations:', totalOps);
+            const monthlyData = generateMonthlyOperationsData(totalOps);
+            console.log('Monthly data:', monthlyData);
+
+            if (operationsChart) {
+                operationsChart.destroy();
+            }
+
+            try {
+                operationsChart = new Chart(operationsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                        datasets: [{
+                            label: 'Opérations',
+                            data: monthlyData,
+                            borderColor: '#3a2d97',
+                            backgroundColor: 'rgba(58, 45, 151, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error creating operations chart:', error);
+            }
+        }
+
+        function generateMonthlyOperationsData(total) {
+            if (total === 0) return [0, 0, 0, 0, 0, 0];
+
+            const baseValue = Math.floor(total / 6);
+            const variance = Math.floor(baseValue * 0.3);
+
+            return Array.from({ length: 6 }, () => {
+                const randomVariance = Math.floor(Math.random() * variance * 2) - variance;
+                return Math.max(0, baseValue + randomVariance);
+            });
+        }
+
+        function updateChartsWithFallbackData() {
+            console.log('Creating fallback charts...');
+
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js is not loaded for fallback charts!');
+                return;
+            }
+
+            const accountTypesElement = document.getElementById('accountTypesChart');
+            if (!accountTypesElement) {
+                console.error('Account types chart canvas not found for fallback!');
+                return;
+            }
+
+            const accountTypesCtx = accountTypesElement.getContext('2d');
+
+            if (accountTypesChart) {
+                accountTypesChart.destroy();
+            }
+
+            accountTypesChart = new Chart(accountTypesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Compte Courant', 'Compte Épargne', 'Plan Épargne Logement'],
+                    datasets: [{
+                        data: [45, 35, 20],
+                        backgroundColor: ['#3a2d97', '#d8e1e6', '#adadc2'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+
+            const operationsElement = document.getElementById('operationsChart');
+            if (!operationsElement) {
+                console.error('Operations chart canvas not found for fallback!');
+                return;
+            }
+
+            const operationsCtx = operationsElement.getContext('2d');
+
+            if (operationsChart) {
+                operationsChart.destroy();
+            }
+
+            operationsChart = new Chart(operationsCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'],
+                    datasets: [{
+                        label: 'Opérations',
+                        data: [65, 78, 90, 81, 95, 105],
+                        borderColor: '#3a2d97',
+                        backgroundColor: 'rgba(58, 45, 151, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeDashboard() {
+            console.log('Initializing dashboard...');
+
+            let retryCount = 0;
+            const maxRetries = 5;
+
+            function checkChartJs() {
+                if (typeof Chart !== 'undefined') {
+                    console.log('Chart.js loaded successfully, version:', Chart.version);
+                    const cards = document.querySelectorAll('.card-hover');
+                    cards.forEach((card, index) => {
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, index * 100);
+                    });
+
+                    fetchDashboardStats();
+
+                    setInterval(fetchDashboardStats, 30000);
+                } else {
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        console.log(`Chart.js not loaded yet, retrying... (${retryCount}/${maxRetries})`);
+                        setTimeout(checkChartJs, 500);
+                    } else {
+                        console.error('Chart.js failed to load after multiple attempts!');
+                        updateChartsWithFallbackData();
+                    }
+                }
+            }
+
+            checkChartJs();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            initializeDashboard();
+        }
+    </script>
+</body>
+
+</html>

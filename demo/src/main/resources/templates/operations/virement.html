@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transfer - BankDash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/icons.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #3a2d97;
+            --color-secondary: #d8e1e6;
+            --color-tertiary: #f5f5f6;
+            --color-accent: #d3d7dd;
+            --color-muted: #adadc2;
+            --color-dark: #000000;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--color-tertiary) 0%, var(--color-secondary) 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        .animate-bounce-in {
+            animation: bounceIn 1s ease-out;
+        }
+        
+        .animate-transfer {
+            animation: transferFlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        @keyframes transferFlow {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(10px); }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.4);
+        }
+        
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.1);
+        }
+        
+        .account-card {
+            transition: all 0.3s ease;
+        }
+        
+        .account-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .transfer-arrow {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="glass-effect sticky top-0 z-50 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <a href="/" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--color-primary);">
+                            <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h1 class="text-xl font-bold gradient-text">BankDash</h1>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm font-medium hover:text-purple-600 transition-colors" style="color: var(--color-primary);">Dashboard</a>
+                    <a href="/comptes" class="text-sm font-medium hover:text-purple-600 transition-colors" style="color: var(--color-primary);">Accounts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <div class="text-center mb-8 animate-slide-up">
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center animate-bounce-in">
+                <i data-lucide="arrow-right-left" class="w-10 h-10 text-white animate-transfer"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-2">Transfer Funds</h2>
+            <p class="text-gray-600">Transfer money between accounts securely</p>
+        </div>
+
+
+        <div th:if="${errorMessageVirement}" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 animate-slide-up">
+            <div class="flex items-center">
+                <i data-lucide="alert-circle" class="w-5 h-5 mr-2"></i>
+                <span th:text="${errorMessageVirement}"></span>
+            </div>
+        </div>
+        
+        <div th:if="${errorMessage}" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6 animate-slide-up">
+            <div class="flex items-center">
+                <i data-lucide="alert-circle" class="w-5 h-5 mr-2"></i>
+                <span th:text="${errorMessage}"></span>
+            </div>
+        </div>
+        
+        <div th:if="${successMessage}" class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6 animate-slide-up">
+            <div class="flex items-center">
+                <i data-lucide="check-circle" class="w-5 h-5 mr-2"></i>
+                <span th:text="${successMessage}"></span>
+            </div>
+        </div>
+
+
+        <div class="glass-effect rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.2s;">
+            <form th:action="@{/comptes/virement}" th:object="${virementRequest}" method="post" class="space-y-8" id="transfer-form">
+                
+    
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <i data-lucide="credit-card" class="w-5 h-5 mr-2 text-purple-600"></i>
+                            From Account
+                        </h3>
+                        <div class="space-y-2">
+                            <label for="idCompteSource" class="block text-sm font-medium text-gray-700">Source Account</label>
+                            <select th:field="*{idCompteSource}" 
+                                    id="idCompteSource"
+                                    required
+                                    class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    th:classappend="${#fields.hasErrors('idCompteSource')} ? 'border-red-500' : ''">
+                                <option value="">Select source account</option>
+                                <option th:each="compte : ${comptes}" 
+                                        th:value="${compte.id}" 
+                                        th:text="${compte.numeroCompte + ' - ' + compte.nomTitulaire + ' (€' + #numbers.formatDecimal(compte.solde, 1, 2) + ')'}"
+                                        th:data-balance="${compte.solde}"
+                                        th:data-holder="${compte.nomTitulaire}"
+                                        th:data-type="${compte.typeCompte.libelle}"></option>
+                            </select>
+                            <div th:if="${#fields.hasErrors('idCompteSource')}" class="text-red-600 text-sm mt-1">
+                                <span th:errors="*{idCompteSource}"></span>
+                            </div>
+                        </div>
+                        
+        
+                        <div id="source-account-details" class="account-card bg-purple-50 border border-purple-200 rounded-lg p-4" style="display: none;">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium text-gray-900" id="source-holder">Account Holder</h4>
+                                    <p class="text-sm text-gray-600" id="source-number">Account Number</p>
+                                    <p class="text-sm text-purple-600" id="source-type">Account Type</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-500">Available Balance</p>
+                                    <p class="text-xl font-bold text-purple-600" id="source-balance">€0.00</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+        
+                    <div class="hidden lg:flex items-center justify-center">
+                        <div class="transfer-arrow">
+                            <i data-lucide="arrow-right" class="w-8 h-8 text-purple-500"></i>
+                        </div>
+                    </div>
+                    
+        
+                    <div class="lg:hidden flex justify-center">
+                        <div class="transfer-arrow">
+                            <i data-lucide="arrow-down" class="w-8 h-8 text-purple-500"></i>
+                        </div>
+                    </div>
+
+        
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                            <i data-lucide="target" class="w-5 h-5 mr-2 text-green-600"></i>
+                            To Account
+                        </h3>
+                        <div class="space-y-2">
+                            <label for="idCompteCible" class="block text-sm font-medium text-gray-700">Destination Account</label>
+                            <select th:field="*{idCompteCible}" 
+                                    id="idCompteCible"
+                                    required
+                                    class="form-input w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    th:classappend="${#fields.hasErrors('idCompteCible')} ? 'border-red-500' : ''">
+                                <option value="">Select destination account</option>
+                                <option th:each="compte : ${comptes}" 
+                                        th:value="${compte.id}" 
+                                        th:text="${compte.numeroCompte + ' - ' + compte.nomTitulaire}"
+                                        th:data-holder="${compte.nomTitulaire}"
+                                        th:data-type="${compte.typeCompte.libelle}"></option>
+                            </select>
+                            <div th:if="${#fields.hasErrors('idCompteCible')}" class="text-red-600 text-sm mt-1">
+                                <span th:errors="*{idCompteCible}"></span>
+                            </div>
+                        </div>
+                        
+        
+                        <div id="dest-account-details" class="account-card bg-green-50 border border-green-200 rounded-lg p-4" style="display: none;">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium text-gray-900" id="dest-holder">Account Holder</h4>
+                                    <p class="text-sm text-gray-600" id="dest-number">Account Number</p>
+                                    <p class="text-sm text-green-600" id="dest-type">Account Type</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="w-6 h-6 text-green-600"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+    
+                <div class="space-y-6">
+        
+                    <div class="space-y-2">
+                        <label for="montant" class="block text-sm font-medium text-gray-700">Transfer Amount</label>
+                        <div class="relative">
+                            <i data-lucide="euro" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-500"></i>
+                            <input th:field="*{montant}" 
+                                   type="number" 
+                                   id="montant"
+                                   step="0.01" 
+                                   min="0.01" 
+                                   placeholder="0.00" 
+                                   required
+                                   class="form-input w-full pl-10 pr-4 py-4 text-xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                   th:classappend="${#fields.hasErrors('montant')} ? 'border-red-500' : ''">
+                        </div>
+                        <div th:if="${#fields.hasErrors('montant')}" class="text-red-600 text-sm mt-1">
+                            <span th:errors="*{montant}"></span>
+                        </div>
+                        <div id="insufficient-warning" class="hidden bg-red-50 border border-red-200 rounded-lg p-3">
+                            <div class="flex items-center">
+                                <i data-lucide="alert-triangle" class="w-5 h-5 text-red-500 mr-2"></i>
+                                <span class="text-red-700 text-sm">Insufficient funds in source account.</span>
+                            </div>
+                        </div>
+                        <div id="same-account-warning" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <div class="flex items-center">
+                                <i data-lucide="alert-circle" class="w-5 h-5 text-yellow-500 mr-2"></i>
+                                <span class="text-yellow-700 text-sm">Cannot transfer to the same account.</span>
+                            </div>
+                        </div>
+                    </div>
+
+        
+                    <div class="space-y-2">
+                        <label for="description" class="block text-sm font-medium text-gray-700">Description (Optional)</label>
+                        <div class="relative">
+                            <i data-lucide="message-square" class="absolute left-3 top-3 w-5 h-5 text-gray-400"></i>
+                            <textarea th:field="*{description}" 
+                                      id="description"
+                                      rows="3"
+                                      placeholder="Add a note about this transfer..."
+                                      class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"></textarea>
+                        </div>
+                    </div>
+
+        
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Quick Amounts</label>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button type="button" onclick="setAmount(25)" class="quick-amount-btn py-2 px-3 text-sm border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors">€25</button>
+                            <button type="button" onclick="setAmount(50)" class="quick-amount-btn py-2 px-3 text-sm border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors">€50</button>
+                            <button type="button" onclick="setAmount(100)" class="quick-amount-btn py-2 px-3 text-sm border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors">€100</button>
+                            <button type="button" onclick="setAmount(250)" class="quick-amount-btn py-2 px-3 text-sm border border-gray-300 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors">€250</button>
+                        </div>
+                    </div>
+
+        
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-4" id="transfer-preview" style="display: none;">
+                        <h4 class="font-medium text-purple-800 mb-3">Transfer Summary</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">From:</span>
+                                <span class="font-medium" id="preview-from">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">To:</span>
+                                <span class="font-medium" id="preview-to">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Amount:</span>
+                                <span class="font-medium text-purple-700" id="preview-amount">€0.00</span>
+                            </div>
+                            <div class="border-t border-purple-200 pt-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Source Balance After:</span>
+                                    <span class="font-medium" id="preview-source-after">€0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+    
+                <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                    <button type="submit" 
+                            id="submit-btn"
+                            class="btn-primary flex-1 py-4 px-6 rounded-lg font-medium flex items-center justify-center space-x-2 shadow-lg">
+                        <i data-lucide="arrow-right-left" class="w-5 h-5"></i>
+                        <span>Confirm Transfer</span>
+                    </button>
+                    <a href="/comptes" 
+                       class="flex-1 py-4 px-6 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <span>Cancel</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+
+        <div class="glass-effect rounded-xl p-4 mt-6 animate-slide-up" style="animation-delay: 0.4s;">
+            <div class="flex items-start space-x-3">
+                <i data-lucide="shield-check" class="w-5 h-5 text-purple-600 mt-0.5"></i>
+                <div>
+                    <h4 class="font-medium text-gray-900">Secure Transfer</h4>
+                    <p class="text-sm text-gray-600">All transfers are processed securely with real-time validation and fraud protection.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    lucide.createIcons();
+
+const form = document.getElementById('virementForm');
+const sourceSelect = document.getElementById('compteSource');
+const destSelect = document.getElementById('compteDestination');
+const amountInput = document.getElementById('montant');
+const warningDiv = document.getElementById('warning');
+const submitBtn = document.getElementById('submitBtn');
+const maxAmountSpan = document.getElementById('maxAmount');
+const currentBalanceSpan = document.getElementById('currentBalance');
+
+let selectedSourceAccount = null;
+let selectedDestAccount = null;
+
+if (sourceSelect) {
+    sourceSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            selectedSourceAccount = {
+                id: selectedOption.value,
+                solde: parseFloat(selectedOption.dataset.solde || 0),
+                titulaire: selectedOption.dataset.titulaire || '',
+                numero: selectedOption.dataset.numero || ''
+            };
+            
+            if (maxAmountSpan) {
+                maxAmountSpan.textContent = selectedSourceAccount.solde.toFixed(2);
+            }
+            if (currentBalanceSpan) {
+                currentBalanceSpan.textContent = selectedSourceAccount.solde.toFixed(2);
+            }
+            
+            validateTransfer();
+        }
+    });
+}
+
+if (destSelect) {
+    destSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        if (selectedOption && selectedOption.value) {
+            selectedDestAccount = {
+                id: selectedOption.value,
+                titulaire: selectedOption.dataset.titulaire || '',
+                numero: selectedOption.dataset.numero || ''
+            };
+            
+            validateTransfer();
+        }
+    });
+}
+
+if (amountInput) {
+    amountInput.addEventListener('input', function() {
+        validateTransfer();
+    });
+}
+
+function validateTransfer() {
+    if (!warningDiv) return;
+    
+    warningDiv.classList.add('hidden');
+    warningDiv.innerHTML = '';
+    
+    if (selectedSourceAccount && selectedDestAccount && selectedSourceAccount.id === selectedDestAccount.id) {
+        warningDiv.innerHTML = `
+            <div class="flex items-center space-x-2 text-amber-600">
+                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                <span>Vous ne pouvez pas effectuer un virement vers le même compte.</span>
+            </div>
+        `;
+        warningDiv.classList.remove('hidden');
+        lucide.createIcons();
+        return false;
+    }
+    
+    const amount = parseFloat(amountInput?.value || 0);
+    if (selectedSourceAccount && amount > selectedSourceAccount.solde) {
+        warningDiv.innerHTML = `
+            <div class="flex items-center space-x-2 text-red-600">
+                <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                <span>Montant insuffisant. Solde disponible: €${selectedSourceAccount.solde.toFixed(2)}</span>
+            </div>
+        `;
+        warningDiv.classList.remove('hidden');
+        lucide.createIcons();
+        return false;
+    }
+    
+    return true;
+}
+
+if (form) {
+    form.addEventListener('submit', function(e) {
+        if (!validateTransfer()) {
+            e.preventDefault();
+            return;
+        }
+        
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin mr-2"></i>Traitement...';
+            
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 100);
+        }
+    });
+}
+
+function setQuickAmount(amount) {
+    if (!selectedSourceAccount) {
+        return;
+    }
+    
+    if (amount > selectedSourceAccount.solde) {
+        if (amountInput) {
+            amountInput.classList.add('ring-2', 'ring-red-500');
+            setTimeout(() => {
+                amountInput.classList.remove('ring-2', 'ring-red-500');
+            }, 1000);
+        }
+        return;
+    }
+    
+    if (amountInput) {
+        amountInput.value = amount;
+        amountInput.dispatchEvent(new Event('input'));
+        
+        amountInput.classList.add('ring-2', 'ring-blue-500');
+        setTimeout(() => {
+            amountInput.classList.remove('ring-2', 'ring-blue-500');
+        }, 1000);
+    }
+}
+
+    lucide.createIcons();
+    
+    const form = document.getElementById('virementForm');
+    const sourceSelect = document.getElementById('compteSource');
+    const destSelect = document.getElementById('compteDestination');
+    const amountInput = document.getElementById('montant');
+    const warningDiv = document.getElementById('warning');
+    const submitBtn = document.getElementById('submitBtn');
+    const maxAmountSpan = document.getElementById('maxAmount');
+    const currentBalanceSpan = document.getElementById('currentBalance');
+    
+    let selectedSourceAccount = null;
+    let selectedDestAccount = null;
+    
+    if (sourceSelect) {
+        sourceSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                selectedSourceAccount = {
+                    id: selectedOption.value,
+                    solde: parseFloat(selectedOption.dataset.solde || 0),
+                    titulaire: selectedOption.dataset.titulaire || '',
+                    numero: selectedOption.dataset.numero || ''
+                };
+                
+                if (maxAmountSpan) {
+                    maxAmountSpan.textContent = selectedSourceAccount.solde.toFixed(2);
+                }
+                if (currentBalanceSpan) {
+                    currentBalanceSpan.textContent = selectedSourceAccount.solde.toFixed(2);
+                }
+                
+                validateTransfer();
+            }
+        });
+    }
+    
+    if (destSelect) {
+        destSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                selectedDestAccount = {
+                    id: selectedOption.value,
+                    titulaire: selectedOption.dataset.titulaire || '',
+                    numero: selectedOption.dataset.numero || ''
+                };
+                
+                validateTransfer();
+            }
+        });
+    }
+    
+    if (amountInput) {
+        amountInput.addEventListener('input', function() {
+            validateTransfer();
+        });
+    }
+    
+    function validateTransfer() {
+        if (!warningDiv) return;
+        
+        warningDiv.classList.add('hidden');
+        warningDiv.innerHTML = '';
+        
+        if (selectedSourceAccount && selectedDestAccount && selectedSourceAccount.id === selectedDestAccount.id) {
+            warningDiv.innerHTML = `
+                <div class="flex items-center space-x-2 text-amber-600">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                    <span>Vous ne pouvez pas effectuer un virement vers le même compte.</span>
+                </div>
+            `;
+            warningDiv.classList.remove('hidden');
+            lucide.createIcons();
+            return false;
+        }
+        
+        const amount = parseFloat(amountInput?.value || 0);
+        if (selectedSourceAccount && amount > selectedSourceAccount.solde) {
+            warningDiv.innerHTML = `
+                <div class="flex items-center space-x-2 text-red-600">
+                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    <span>Montant insuffisant. Solde disponible: €${selectedSourceAccount.solde.toFixed(2)}</span>
+                </div>
+            `;
+            warningDiv.classList.remove('hidden');
+            lucide.createIcons();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!validateTransfer()) {
+                e.preventDefault();
+                return;
+            }
+            
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin mr-2"></i>Traitement...';
+                
+                setTimeout(() => {
+                    lucide.createIcons();
+                }, 100);
+            }
+        });
+    }
+
+    function setQuickAmount(amount) {
+        if (!selectedSourceAccount) {
+            return;
+        }
+        
+        if (amount > selectedSourceAccount.solde) {
+            if (amountInput) {
+                amountInput.classList.add('ring-2', 'ring-red-500');
+                setTimeout(() => {
+                    amountInput.classList.remove('ring-2', 'ring-red-500');
+                }, 1000);
+            }
+            return;
+        }
+        
+        if (amountInput) {
+            amountInput.value = amount;
+            amountInput.dispatchEvent(new Event('input'));
+            
+            amountInput.classList.add('ring-2', 'ring-blue-500');
+            setTimeout(() => {
+                amountInput.classList.remove('ring-2', 'ring-blue-500');
+            }, 1000);
+        }
+    }
+</body>
+</html>

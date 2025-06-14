@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - BankDash'">Account Form - BankDash</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/js/icons.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #3a2d97;
+            --color-secondary: #d8e1e6;
+            --color-tertiary: #f5f5f6;
+            --color-accent: #d3d7dd;
+            --color-muted: #adadc2;
+            --color-dark: #000000;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--color-tertiary) 0%, var(--color-secondary) 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        
+        .animate-slide-up {
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #2d2373;
+            transform: translateY(-1px);
+        }
+        
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px -5px rgba(58, 45, 151, 0.1);
+        }
+        
+        .error-message {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .floating-label {
+            position: relative;
+        }
+        
+        .floating-label input:focus + label,
+        .floating-label input:not(:placeholder-shown) + label {
+            transform: translateY(-1.5rem) scale(0.875);
+            color: var(--color-primary);
+        }
+        
+        .floating-label label {
+            position: absolute;
+            left: 0.75rem;
+            top: 0.75rem;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="glass-effect sticky top-0 z-50 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <a href="/" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--color-primary);">
+                            <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h1 class="text-xl font-bold gradient-text">BankDash</h1>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm font-medium hover:text-purple-600 transition-colors" style="color: var(--color-primary);">Dashboard</a>
+                    <a href="/comptes" class="text-sm font-medium hover:text-purple-600 transition-colors" style="color: var(--color-primary);">Accounts</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <div class="text-center mb-8 animate-slide-up">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2" th:text="${pageTitle}">Create New Account</h2>
+            <p class="text-gray-600">Fill in the details below to create a new bank account</p>
+        </div>
+
+
+        <div class="glass-effect rounded-2xl p-8 animate-slide-up" style="animation-delay: 0.2s;">
+            <form th:action="@{/comptes/sauvegarder}" th:object="${compteBancaire}" method="post" class="space-y-6">
+    
+                <input type="hidden" th:field="*{id}" />
+                
+    
+                <div class="space-y-2">
+                    <label for="numeroCompte" class="block text-sm font-medium text-gray-700">Account Number</label>
+                    <div class="relative">
+                        <i data-lucide="hash" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="text" 
+                               th:field="*{numeroCompte}" 
+                               id="numeroCompte"
+                               placeholder="Enter account number (5-20 characters)"
+                               class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                               th:classappend="${#fields.hasErrors('numeroCompte')} ? 'border-red-500' : ''">
+                    </div>
+                    <div th:if="${#fields.hasErrors('numeroCompte')}" class="error-message">
+                        <p class="text-red-500 text-sm flex items-center">
+                            <i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i>
+                            <span th:errors="*{numeroCompte}"></span>
+                        </p>
+                    </div>
+                </div>
+
+    
+                <div class="space-y-2">
+                    <label for="nomTitulaire" class="block text-sm font-medium text-gray-700">Account Holder Name</label>
+                    <div class="relative">
+                        <i data-lucide="user" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="text" 
+                               th:field="*{nomTitulaire}" 
+                               id="nomTitulaire"
+                               placeholder="Enter full name (2-100 characters)"
+                               class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                               th:classappend="${#fields.hasErrors('nomTitulaire')} ? 'border-red-500' : ''">
+                    </div>
+                    <div th:if="${#fields.hasErrors('nomTitulaire')}" class="error-message">
+                        <p class="text-red-500 text-sm flex items-center">
+                            <i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i>
+                            <span th:errors="*{nomTitulaire}"></span>
+                        </p>
+                    </div>
+                </div>
+
+    
+                <div class="space-y-2">
+                    <label for="solde" class="block text-sm font-medium text-gray-700">Initial Balance</label>
+                    <div class="relative">
+                        <i data-lucide="euro" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <input type="number" 
+                               th:field="*{solde}" 
+                               id="solde"
+                               step="0.01"
+                               min="0"
+                               placeholder="0.00"
+                               class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                               th:classappend="${#fields.hasErrors('solde')} ? 'border-red-500' : ''">
+                    </div>
+                    <div th:if="${#fields.hasErrors('solde')}" class="error-message">
+                        <p class="text-red-500 text-sm flex items-center">
+                            <i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i>
+                            <span th:errors="*{solde}"></span>
+                        </p>
+                    </div>
+                    <p class="text-sm text-gray-500">Minimum balance: €0.00</p>
+                </div>
+
+    
+                <div class="space-y-2">
+                    <label for="typeCompte" class="block text-sm font-medium text-gray-700">Account Type</label>
+                    <div class="relative">
+                        <i data-lucide="credit-card" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                        <select th:field="*{typeCompte}" 
+                                id="typeCompte"
+                                class="form-input w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none"
+                                th:classappend="${#fields.hasErrors('typeCompte')} ? 'border-red-500' : ''">
+                            <option value="">Select account type</option>
+                            <option th:each="type : ${typesCompte}" 
+                                    th:value="${type}" 
+                                    th:text="${type.libelle}"
+                                    th:selected="${compteBancaire.typeCompte == type}"></option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"></i>
+                    </div>
+                    <div th:if="${#fields.hasErrors('typeCompte')}" class="error-message">
+                        <p class="text-red-500 text-sm flex items-center">
+                            <i data-lucide="alert-circle" class="w-4 h-4 mr-1"></i>
+                            <span th:errors="*{typeCompte}"></span>
+                        </p>
+                    </div>
+                </div>
+
+    
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg" style="background: var(--color-secondary);">
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-2 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <i data-lucide="banknote" class="w-6 h-6 text-blue-600"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-900">Compte Courant</h4>
+                        <p class="text-sm text-gray-600">For daily transactions</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-2 rounded-lg bg-green-100 flex items-center justify-center">
+                            <i data-lucide="piggy-bank" class="w-6 h-6 text-green-600"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-900">Compte Épargne</h4>
+                        <p class="text-sm text-gray-600">For savings with interest</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-12 h-12 mx-auto mb-2 rounded-lg bg-yellow-100 flex items-center justify-center">
+                            <i data-lucide="home" class="w-6 h-6 text-yellow-600"></i>
+                        </div>
+                        <h4 class="font-medium text-gray-900">Plan Épargne Logement</h4>
+                        <p class="text-sm text-gray-600">For housing savings</p>
+                    </div>
+                </div>
+
+    
+                <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                    <button type="submit" 
+                            class="btn-primary flex-1 py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2 shadow-lg">
+                        <i data-lucide="save" class="w-5 h-5"></i>
+                        <span th:text="${compteBancaire.id != null} ? 'Update Account' : 'Create Account'">Create Account</span>
+                    </button>
+                    <a href="/comptes" 
+                       class="flex-1 py-3 px-6 rounded-lg font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                        <span>Cancel</span>
+                    </a>
+                </div>
+            </form>
+        </div>
+
+
+        <div class="glass-effect rounded-xl p-6 mt-8 animate-slide-up" style="animation-delay: 0.4s;">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i data-lucide="help-circle" class="w-5 h-5 mr-2" style="color: var(--color-primary);"></i>
+                Need Help?
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Account Number Guidelines:</h4>
+                    <ul class="space-y-1">
+                        <li>• Must be between 5-20 characters</li>
+                        <li>• Should be unique across all accounts</li>
+                        <li>• Can contain letters and numbers</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-900 mb-2">Account Types:</h4>
+                    <ul class="space-y-1">
+                        <li>• <strong>Courant:</strong> For everyday banking</li>
+                        <li>• <strong>Épargne:</strong> For saving money</li>
+                        <li>• <strong>PEL:</strong> For housing projects</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const form = document.getElementById('compteForm');
+        const inputs = form.querySelectorAll('input, select');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+            
+            input.addEventListener('input', function() {
+                if (this.classList.contains('border-red-500')) {
+                    validateField(this);
+                }
+            });
+        });
+
+        function validateField(field) {
+            const value = field.value.trim();
+            let isValid = true;
+            
+            if (field.hasAttribute('required') && !value) {
+                isValid = false;
+            }
+            
+            if (field.type === 'number' && value) {
+                const num = parseFloat(value);
+                if (isNaN(num) || num < 0) {
+                    isValid = false;
+                }
+            }
+            
+            if (isValid) {
+                field.classList.remove('border-red-500', 'bg-red-50');
+                field.classList.add('border-green-500', 'bg-green-50');
+            } else {
+                field.classList.remove('border-green-500', 'bg-green-50');
+                field.classList.add('border-red-500', 'bg-red-50');
+            }
+        }
+
+        form.addEventListener('submit', function(e) {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin mr-2"></i>Création...';
+                
+                setTimeout(() => {
+                    lucide.createIcons();
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>
